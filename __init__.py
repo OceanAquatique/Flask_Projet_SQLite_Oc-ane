@@ -5,6 +5,7 @@ from urllib.request import urlopen
 from werkzeug.utils import secure_filename
 import sqlite3
 from flask import request, Response
+imporyt os
 
 USER_LOGIN = "user"
 USER_PASSWORD = "12345"
@@ -20,7 +21,10 @@ def require_user_auth():
         )
     return None
 
-app = Flask(__name__)                                                                                                                  
+app = Flask(__name__)
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DB_PATH = os.path.join(BASE_DIR, "database.db")
+
 app.secret_key = b'_5#y2L"F4Q8z\n\xec]/'  # Clé secrète pour les sessions
 
 # Fonction pour créer une clé "authentifie" dans la session utilisateur
@@ -56,7 +60,7 @@ def authentification():
 
 @app.route('/fiche_client/<int:post_id>')
 def Readfiche(post_id):
-    conn = sqlite3.connect('database.db')
+    conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     cursor.execute('SELECT * FROM clients WHERE id = ?', (post_id,))
     data = cursor.fetchall()
@@ -66,7 +70,7 @@ def Readfiche(post_id):
 
 @app.route('/consultation/')
 def ReadBDD():
-    conn = sqlite3.connect('database.db')
+    conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     cursor.execute('SELECT * FROM clients;')
     data = cursor.fetchall()
@@ -83,7 +87,7 @@ def enregistrer_client():
     prenom = request.form['prenom']
 
     # Connexion à la base de données
-    conn = sqlite3.connect('database.db')
+    conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
 
     # Exécution de la requête SQL pour insérer un nouveau client
@@ -119,7 +123,7 @@ def fiche_nom():
         """
 
     # Recherche en base (LIKE pour accepter recherche partielle)
-    conn = sqlite3.connect('database.db')
+    conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     cursor.execute('SELECT * FROM clients WHERE nom LIKE ?', (f"%{nom}%",))
     data = cursor.fetchall()
@@ -132,7 +136,7 @@ if __name__ == "__main__":
   app.run(debug=True)
 
 def get_db():
-    return sqlite3.connect("database.db")
+    return sqlite3.connect(DB_PATH)
 
 def require_user_auth_db():
     auth = request.authorization
@@ -152,7 +156,7 @@ def require_user_auth_db():
     return row[0]
 def get_db():
     """Ouvre une connexion SQLite vers la base."""
-    conn = sqlite3.connect("database.db")
+    conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
     return conn
 
