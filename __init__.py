@@ -313,3 +313,16 @@ def admin_delete_book(book_id):
 
     return jsonify({"status": "book_deleted", "book_id": book_id})
 
+@app.route("/admin")
+def admin_home():
+    if not est_authentifie():
+        return redirect(url_for("authentification"))
+    return """
+    <h2>Admin Library</h2>
+    <p>Tu es admin ✅</p>
+    <ul>
+      <li>POST /api/admin/books (JSON)</li>
+      <li>DELETE /api/admin/books/&lt;id&gt;</li>
+    </ul>
+    """
+
