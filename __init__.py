@@ -150,4 +150,65 @@ def require_user_auth_db():
 
     # on renvoie l'user_id pour les emprunts
     return row[0]
+def get_db():
+    """Ouvre une connexion SQLite vers la base."""
+    conn = sqlite3.connect("database.db")
+    conn.row_factory = sqlite3.Row
+    return conn
+
+def require_user_auth_db():
+    """Basic Auth: vérifie user/12345 dans la table users avec role=user.
+       Retourne user_id si OK, sinon une Response 401."""
+    auth = request.authorization
+    if not auth:
+        return Response("Auth requise", 401, {"WWW-Authenticate": 'Basic realm="User Area"'})
+
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("SELECT id, role FROM users WHERE username=? AND password=?", (auth.username, auth.password))
+    row = cur.fetchone()
+    conn.close()
+
+    if not row or row["role"] != "user":
+        return Response("Accès refusé (user)", 401, {"WWW-Authenticate": 'Basic realm="User Area"'})
+
+    return row["id"]
+
+def require_admin_session():
+    """Vérifie que la session admin est authentifiée via /authentification."""
+    if not est_authentifie():
+        return Response("Accès refusé (admin requis)", 403)
+    return None
+
+@app.route("/api/books", methods=["GET"])
+def api_books():
+    user_id_or_denied = require_user_auth_db()
+    if isinstance(user_id_or_denied, Response):
+        return user_id_or_denied
+
+    search = request.args.get("search", "").strip()
+
+    conn = get_db()
+    cur = conn.cursor()
+
+    if search:
+        cur.execute("""
+            SELECT id, title, author, isbn, stock_total, stock_available
+            FROM books
+            WHERE stock_available > 0
+              AND (title LIKE ? OR author LIKE ? OR isbn LIKE ?)
+            ORDER BY title
+        """, (f"%{search}%", f"%{search}%", f"%{search}%"))
+    else:
+        cur.execute("""
+            SELECT id, title, author, isbn, stock_total, stock_available
+            FROM books
+            WHERE stock_available > 0
+            ORDER BY title
+        """)
+
+    rows = [dict(r) for r in cur.fetchall()]
+    conn.close()
+
+    return jsonify(rows)
 
