@@ -212,3 +212,104 @@ def api_books():
 
     return jsonify(rows)
 
+@app.route("/api/borrow/<int:book_id>", methods=["POST"])
+def api_borrow(book_id):
+    user_id_or_denied = require_user_auth_db()
+    if isinstance(user_id_or_denied, Response):
+        return user_id_or_denied
+    user_id = user_id_or_denied
+
+    conn = get_db()
+    cur = conn.cursor()
+
+    # Vérifie stock dispo
+    cur.execute("SELECT stock_available FROM books WHERE id=?", (book_id,))
+    row = cur.fetchone()
+    if not row:
+        conn.close()
+        return jsonify({"error": "Livre introuvable"}), 404
+
+    if row["stock_available"] <= 0:
+        conn.close()
+        return jsonify({"error": "Plus de stock disponible"}), 409
+
+    # Enregistre l'emprunt + décrémente stock
+    cur.execute("INSERT INTO loans (user_id, book_id, loan_date, return_date) VALUES (?, ?, datetime('now'), NULL)",
+                (user_id, book_id))
+    cur.execute("UPDATE books SET stock_available = stock_available - 1 WHERE id=?", (book_id,))
+    conn.commit()
+    conn.close()
+
+    return jsonify({"status": "borrowed", "book_id": book_id, "user_id": user_id})
+
+@app.route("/api/return/<int:book_id>", methods=["POST"])
+def api_return(book_id):
+    user_id_or_denied = require_user_auth_db()
+    if isinstance(user_id_or_denied, Response):
+        return user_id_or_denied
+    user_id = user_id_or_denied
+
+    conn = get_db()
+    cur = conn.cursor()
+
+    # Trouve un emprunt actif de cet utilisateur sur ce livre
+    cur.execute("""
+        SELECT id FROM loans
+        WHERE user_id=? AND book_id=? AND return_date IS NULL
+        ORDER BY id DESC
+        LIMIT 1
+    """, (user_id, book_id))
+    loan = cur.fetchone()
+
+    if not loan:
+        conn.close()
+        return jsonify({"error": "Aucun emprunt actif trouvé"}), 404
+
+    # Marque comme rendu + incrémente stock
+    cur.execute("UPDATE loans SET return_date = datetime('now') WHERE id=?", (loan["id"],))
+    cur.execute("UPDATE books SET stock_available = stock_available + 1 WHERE id=?", (book_id,))
+    conn.commit()
+    conn.close()
+
+    return jsonify({"status": "returned", "book_id": book_id, "user_id": user_id})
+
+@app.route("/api/admin/books", methods=["POST"])
+def admin_add_book():
+    denied = require_admin_session()
+    if denied:
+        return denied
+
+    data = request.get_json(force=True)
+    title = data.get("title", "").strip()
+    author = data.get("author", "").strip()
+    isbn = data.get("isbn")
+    stock_total = int(data.get("stock_total", 1))
+
+    if not title or not author or stock_total < 1:
+        return jsonify({"error": "title/author/stock_total invalides"}), 400
+
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("""
+        INSERT INTO books (title, author, isbn, stock_total, stock_available)
+        VALUES (?, ?, ?, ?, ?)
+    """, (title, author, isbn, stock_total, stock_total))
+    conn.commit()
+    conn.close()
+
+    return jsonify({"status": "book_added"})
+
+@app.route("/api/admin/books/<int:book_id>", methods=["DELETE"])
+def admin_delete_book(book_id):
+    denied = require_admin_session()
+    if denied:
+        return denied
+
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("DELETE FROM books WHERE id=?", (book_id,))
+    conn.commit()
+    conn.close()
+
+    return jsonify({"status": "book_deleted", "book_id": book_id})
+
