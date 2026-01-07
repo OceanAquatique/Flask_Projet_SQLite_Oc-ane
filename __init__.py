@@ -5,7 +5,7 @@ from urllib.request import urlopen
 from werkzeug.utils import secure_filename
 import sqlite3
 from flask import request, Response
-imporyt os
+import os
 
 USER_LOGIN = "user"
 USER_PASSWORD = "12345"
