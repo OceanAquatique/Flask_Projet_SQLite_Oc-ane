@@ -4,6 +4,21 @@ from flask import json
 from urllib.request import urlopen
 from werkzeug.utils import secure_filename
 import sqlite3
+from flask import request, Response
+
+USER_LOGIN = "user"
+USER_PASSWORD = "12345"
+
+def require_user_auth():
+    # Vérifie une authentification Basic Auth user/12345.
+    auth = request.authorization
+    if not auth or not (auth.username == USER_LOGIN and auth.password == USER_PASSWORD):
+        return Response(
+            "Accès refusé (auth user requise)",
+            401,
+            {"WWW-Authenticate": 'Basic realm="User Area"'}
+        )
+    return None
 
 app = Flask(__name__)                                                                                                                  
 app.secret_key = b'_5#y2L"F4Q8z\n\xec]/'  # Clé secrète pour les sessions
@@ -76,6 +91,42 @@ def enregistrer_client():
     conn.commit()
     conn.close()
     return redirect('/consultation/')  # Rediriger vers la page d'accueil après l'enregistrement
-                                                                                                                                       
+
+@app.route('/fiche_nom/', methods=['GET', 'POST'])
+def fiche_nom():
+    # Protection user/12345 (Basic Auth)
+    deny = require_user_auth()
+    if deny:
+        return deny
+
+    # Récupération du nom (POST via formulaire, ou GET via ?nom=)
+    nom = ""
+    if request.method == 'POST':
+        nom = request.form.get('nom', '').strip()
+    else:
+        nom = request.args.get('nom', '').strip()
+
+    # Si aucun nom fourni, afficher un petit formulaire
+    if not nom:
+        return """
+        <h2>Recherche client par nom</h2>
+        <form method="POST">
+            <label>Nom :</label>
+            <input name="nom" placeholder="Ex: DUPONT" required>
+            <button type="submit">Rechercher</button>
+        </form>
+        <p>Astuce: tu peux aussi utiliser /fiche_nom/?nom=DUPONT</p>
+        """
+
+    # Recherche en base (LIKE pour accepter recherche partielle)
+    conn = sqlite3.connect('database.db')
+    cursor = conn.cursor()
+    cursor.execute('SELECT * FROM clients WHERE nom LIKE ?', (f"%{nom}%",))
+    data = cursor.fetchall()
+    conn.close()
+
+    # Réutilise ton template existant pour afficher la liste
+    return render_template('read_data.html', data=data)
+
 if __name__ == "__main__":
   app.run(debug=True)
