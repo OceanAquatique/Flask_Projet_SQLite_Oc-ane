@@ -18,3 +18,31 @@ cur.execute("INSERT INTO clients (nom, prenom, adresse) VALUES (?, ?, ?)",('LEFE
 
 connection.commit()
 connection.close()
+
+import sqlite3
+
+DB = "database.db"
+
+def main():
+    conn = sqlite3.connect(DB)
+    cursor = conn.cursor()
+
+    # Charge le schema.sql et l'exécute
+    with open("schema.sql", "r", encoding="utf-8") as f:
+        cursor.executescript(f.read())
+
+    # Comptes par défaut
+    cursor.execute("INSERT INTO users (username, password, role) VALUES (?, ?, ?)", ("admin", "password", "admin"))
+    cursor.execute("INSERT INTO users (username, password, role) VALUES (?, ?, ?)", ("user", "12345", "user"))
+
+    # Livres de démo
+    cursor.execute("INSERT INTO books (title, author, isbn, stock_total, stock_available) VALUES (?, ?, ?, ?, ?)",
+                   ("1984", "George Orwell", "9780451524935", 3, 3))
+    cursor.execute("INSERT INTO books (title, author, isbn, stock_total, stock_available) VALUES (?, ?, ?, ?, ?)",
+                   ("Le Petit Prince", "Antoine de Saint-Exupéry", "9782070612758", 2, 2))
+
+    conn.commit()
+    conn.close()
+
+if __name__ == "__main__":
+    main()
