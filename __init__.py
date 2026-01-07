@@ -130,3 +130,24 @@ def fiche_nom():
 
 if __name__ == "__main__":
   app.run(debug=True)
+
+def get_db():
+    return sqlite3.connect("database.db")
+
+def require_user_auth_db():
+    auth = request.authorization
+    if not auth:
+        return Response("Auth requise", 401, {"WWW-Authenticate": 'Basic realm="User Area"'})
+
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("SELECT id, role FROM users WHERE username=? AND password=?", (auth.username, auth.password))
+    row = cur.fetchone()
+    conn.close()
+
+    if not row or row[1] != "user":
+        return Response("Accès refusé", 401, {"WWW-Authenticate": 'Basic realm="User Area"'})
+
+    # on renvoie l'user_id pour les emprunts
+    return row[0]
+
