@@ -58,7 +58,7 @@ def authentification():
 
     return render_template('formulaire_authentification.html', error=False)
 
-@app.route('/fiche_client/<int:post_id>')
+# @app.route('/fiche_client/<int:post_id>')
 def Readfiche(post_id):
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
@@ -77,11 +77,11 @@ def ReadBDD():
     conn.close()
     return render_template('read_data.html', data=data)
 
-@app.route('/enregistrer_client', methods=['GET'])
+# @app.route('/enregistrer_client', methods=['GET'])
 def formulaire_client():
     return render_template('formulaire.html')  # afficher le formulaire
 
-@app.route('/enregistrer_client', methods=['POST'])
+# @app.route('/enregistrer_client', methods=['POST'])
 def enregistrer_client():
     nom = request.form['nom']
     prenom = request.form['prenom']
@@ -94,7 +94,7 @@ def enregistrer_client():
     cursor.execute('INSERT INTO clients (created, nom, prenom, adresse) VALUES (?, ?, ?, ?)', (1002938, nom, prenom, "ICI"))
     conn.commit()
     conn.close()
-    return redirect('/consultation/')  # Rediriger vers la page d'accueil après l'enregistrement
+    # return redirect('/consultation/')  # Rediriger vers la page d'accueil après l'enregistrement
 
 @app.route('/fiche_nom/', methods=['GET', 'POST'])
 def fiche_nom():
