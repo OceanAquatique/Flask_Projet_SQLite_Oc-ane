@@ -7,8 +7,22 @@ import sqlite3
 from flask import request, Response
 import os
 
-USER_LOGIN = "user"
-USER_PASSWORD = "12345"
+def require_user_auth_db():
+    auth = request.authorization
+    if not auth:
+        return Response("Auth requise", 401, {"WWW-Authenticate": 'Basic realm="User Area"'})
+
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    cur = conn.cursor()
+    cur.execute("SELECT id, role FROM users WHERE username=? AND password=?", (auth.username, auth.password))
+    row = cur.fetchone()
+    conn.close()
+
+    if not row or row["role"] != "user":
+        return Response("Accès refusé (user)", 401, {"WWW-Authenticate": 'Basic realm="User Area"'})
+
+    return row["id"]
 
 def require_user_auth():
     # Vérifie une authentification Basic Auth user/12345.
