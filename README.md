@@ -283,3 +283,25 @@ Grâce à ces évolutions, l’application est passée : d’une simple page Fla
 
 L’objectif n’est pas de faire une application “production”, mais de comprendre les briques fondamentales d’un backend Flask moderne.
 
+Chemins à utiliser pour vérifications :
+1. Vérifier que Flask fonctionne (application en ligne)
+https://oceanaquatique.alwaysdata.net > Base de l’application (hébergement AlwaysData). Sert à vérifier : que Flask démarre correctement, que le serveur répond, et que le template hello.html est bien chargé.
+
+2. Vérifier l’authentification admin (session Flask)
+https://oceanaquatique.alwaysdata.net/authentification > Sert à vérifier : que les routes GET/POST fonctionnent, que le formulaire HTML s’affiche, et que les sessions Flask fonctionnent.
+Test :
+- identifiant : admin
+- mot de passe : password
+Si correct, redirection vers : https://oceanaquatique.alwaysdata.net/lecture
+
+3. Vérifier que la base de données n’est pas vide :
+https://oceanaquatique.alwaysdata.net/api/debug/counts > Sert à vérifier : que Flask pointe vers la bonne base SQLite, que les tables existent, et que les données sont bien présentes.
+Si tout est à 0 : soit la base est vide, soit Flask pointe vers une mauvaise DB (erreur de chemin).
+
+4. Vérifier l’API utilisateur (bibliothèque) (Ces routes nécessitent une authentification Basic Auth (login / mot de passe stockés dans la table users)).
+https://oceanaquatique.alwaysdata.net/api/books > Lister les livres disponibles
+Ce qui se passe : le navigateur demande un login / mot de passe, Flask vérifie dans la DB, si OK ➜ liste JSON des livres disponibles.
+Sert à vérifier : l’authentification Basic Auth, la requête SQL, le format JSON.
+
+
+
