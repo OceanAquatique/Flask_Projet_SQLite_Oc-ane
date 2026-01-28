@@ -147,4 +147,139 @@ Votre travail est de modifier votre code afin de répondre aux besoins définis 
 L'application exploitera des API pour interagir avec la base de données et un contrôle d'accès Utilisateur/Administrateur doit être mis en place.  
 L’application pourra être enrichie avec des fonctionnalités supplémentaires telles que des recommandations de livres, des notifications pour les retours en retard, ou encore des rapports statistiques sur l'utilisation des livres pour améliorer l'expérience utilisateur et la gestion de la bibliothèque.  
 
-trigger deploy
+------------------/!\ MODIFICATIONS EFFECTUEES /!\------------------------
+Séquence suivante — Évolution de l’application Flask (explication détaillée)
+
+Dans les premières séquences du projet, l’application Flask était volontairement très simple.
+Elle servait surtout à comprendre les bases : lancer un serveur Flask et afficher une page HTML.
+
+1. Rappel : ce que faisait le code de base
+Le code initial se limitait à :
+- créer une application Flask,
+- définir une seule route /,
+- afficher une page HTML (hello.html).
+
+Limite de cette version :
+- aucune base de données,
+- aucune authentification,
+- aucune logique métier,
+- aucune API.
+L’application ne faisait qu’afficher une page, sans interaction réelle.
+
+2. Objectif des modifications apportées
+
+Les modifications réalisées ont pour but de transformer cette application basique en une application web plus réaliste, intégrant :
+- une base de données SQLite,
+- une API REST,
+- deux types d’authentification,
+- une logique métier simple (gestion d’une bibliothèque).
+L’objectif reste pédagogique : comprendre comment une vraie application Flask est structurée, sans complexité excessive.
+
+3. Ajout d’une base de données SQLite
+Pourquoi une base de données ?
+
+Une application réelle doit pouvoir stocker des informations :
+- des utilisateurs, des livres, et des emprunts.
+SQLite a été choisie car :
+- elle est simple, elle ne nécessite pas de serveur, et elle est parfaitement adaptée aux TP.
+- 
+Chemin absolu vers la base :
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DB_PATH = os.path.join(BASE_DIR, "database.db")
+Ce point est très important :
+le chemin absolu évite le problème classique où Flask crée une base vide par erreur selon le dossier depuis lequel l’application est lancée.
+
+4. Fonction utilitaire pour accéder à la base
+def get_db():
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    return conn
+Cette fonction :
+- ouvre une connexion vers la base SQLite,
+- permet d’accéder aux colonnes par leur nom (row["title"]) plutôt que par index (row[0]),
+- centralise l’accès à la base pour éviter la duplication de code.
+
+5. Mise en place de l’authentification
+Deux types d’authentification ont été ajoutés pour illustrer deux approches différentes.
+
+5.1 Authentification “utilisateur” (Basic Auth + base de données)
+Cette authentification est utilisée pour accéder à l’API publique de la bibliothèque.
+Principe :
+- l’utilisateur fournit un login / mot de passe,
+- ces informations sont vérifiées dans la table users,
+- seul un utilisateur ayant le rôle user est autorisé.
+
+def require_user_auth_db():
+    auth = request.authorization
+    if not auth:
+        return Response("Auth requise", 401, {"WWW-Authenticate": 'Basic realm="User Area"'})
+Si l’utilisateur n’est pas authentifié :
+- le serveur renvoie une erreur 401, et le navigateur affiche automatiquement une fenêtre de login.
+Cette méthode permet de comprendre : les codes HTTP, le fonctionnement du header Authorization, et la protection d’une API.
+
+5.2 Authentification “admin” via session Flask
+- Cette authentification est différente :
+- elle passe par un formulaire HTML,
+- l’état de connexion est stocké dans la session Flask.
+
+session["authentifie"] = True
+Elle permet d’accéder aux fonctionnalités administrateur : ajout de livres, suppression de livres.
+Cette séparation montre qu’il peut exister plusieurs niveaux d’accès dans une même application.
+
+6. Réorganisation des routes existantes
+Les anciennes routes liées aux “clients” du TP initial ont été volontairement :
+- soit désactivées,
+- soit redirigées vers les nouvelles routes API.
+Cela permet de :
+- conserver la structure du TP, éviter la confusion, montrer comment une application peut évoluer sans tout casser.
+
+7. Création d’une API de bibliothèque
+7.1 Liste des livres disponibles
+Route : GET /api/books
+Fonctionnalités : authentification obligatoire, affichage uniquement des livres disponibles, possibilité de recherche par titre, auteur ou ISBN.
+Cette route illustre : l’utilisation des paramètres URL (?search=), les requêtes SQL conditionnelles, le retour de données au format JSON.
+
+7.2 Emprunter un livre
+Route : POST /api/borrow/<book_id>
+
+Logique : vérifier que l’utilisateur est authentifié, vérifier que le livre existe, vérifier que le stock est suffisant, enregistrer l’emprunt, décrémenter le stock.
+Cette route introduit :
+- la notion de logique métier,
+- la gestion des erreurs (404, 409),
+- les transactions SQL.
+
+7.3 Rendre un livre
+Route : POST /api/return/<book_id>
+
+Fonctionnement inverse :
+- recherche d’un emprunt actif,
+- mise à jour de la date de retour,
+- incrémentation du stock.
+
+8. API administrateur
+Les routes administrateur sont protégées par la session.
+Ajouter un livre : POST /api/admin/books
+- données envoyées en JSON,
+- validation minimale des champs,
+- initialisation du stock.
+Supprimer un livre : DELETE /api/admin/books/<id>
+Ces routes permettent de comprendre :
+- les méthodes HTTP (POST / DELETE),
+- la distinction utilisateur / administrateur,
+- la sécurisation des actions sensibles.
+
+9. Route de diagnostic (debug)
+/api/debug/counts
+Cette route retourne : le nombre de livres, le nombre d’utilisateurs, le nombre d’emprunts.
+Elle sert uniquement à : vérifier que la base n’est pas vide, diagnostiquer rapidement un problème de données.
+
+10. Conclusion pédagogique
+Grâce à ces évolutions, l’application est passée : d’une simple page Flask à une application web complète de niveau débutant/intermédiaire, intégrant :
+- base de données,
+- API REST,
+- authentification,
+- logique métier,
+- séparation des rôles.
+
+L’objectif n’est pas de faire une application “production”, mais de comprendre les briques fondamentales d’un backend Flask moderne.
+
