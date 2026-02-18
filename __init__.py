@@ -8,7 +8,7 @@ app.secret_key = b'_5#y2L"F4Q8z\n\xec]/'  # Clé secrète pour les sessions
 # Chemin ABSOLU vers la base SQLite (évite les "BDD vide" à cause du répertoire courant)
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DB_PATH = os.path.join(BASE_DIR, "database.db")
-
+TASKS_DB_PATH = os.path.join(BASE_DIR, "tasks.db")
 
 # -------------------------
 # Helpers DB / Auth
@@ -19,7 +19,6 @@ def get_db():
     conn.row_factory = sqlite3.Row
     return conn
 
-
 def require_user_auth_db():
     """
     Basic Auth: vérifie user/12345 dans la table users avec role='user'.
@@ -28,7 +27,6 @@ def require_user_auth_db():
     auth = request.authorization
     if not auth:
         return Response("Auth requise", 401, {"WWW-Authenticate": 'Basic realm="User Area"'})
-
     conn = get_db()
     cur = conn.cursor()
     cur.execute(
@@ -37,17 +35,13 @@ def require_user_auth_db():
     )
     row = cur.fetchone()
     conn.close()
-
     if not row or row["role"] != "user":
         return Response("Accès refusé (user)", 401, {"WWW-Authenticate": 'Basic realm="User Area"'})
-
     return row["id"]
-
 
 def est_authentifie():
     """Vérifie si la session admin est authentifiée via /authentification."""
     return session.get("authentifie")
-
 
 def require_admin_session():
     """Accès admin basé sur la session (admin/password via formulaire)."""
@@ -55,14 +49,18 @@ def require_admin_session():
         return Response("Accès refusé (admin requis)", 403)
     return None
 
-
+def get_tasks_db():
+    """Ouvre une connexion SQLite vers la base des tâches."""
+    conn = sqlite3.connect(TASKS_DB_PATH)
+    conn.row_factory = sqlite3.Row
+    return conn
+    
 # -------------------------
 # Pages (TP initial)
 # -------------------------
 @app.route("/")
 def hello_world():
     return render_template("hello.html")
-
 
 @app.route("/lecture")
 def lecture():
@@ -276,3 +274,63 @@ def debug_counts():
     loans = cur.fetchone()["c"]
     conn.close()
     return jsonify({"books": books, "users": users, "loans": loans})
+
+
+# -------------------------
+# Mini-projet : Gestion de tâches (HTML)
+# -------------------------
+
+@app.route("/tasks")
+def tasks_home():
+    return render_template("tasks_home.html")
+
+@app.route("/tasks/list")
+def tasks_list():
+    conn = get_tasks_db()
+    cur = conn.cursor()
+    cur.execute("""
+        SELECT id, title, description, due_date, is_done, created_at
+        FROM tasks
+        ORDER BY is_done ASC, due_date ASC, id DESC
+    """)
+    rows = [dict(r) for r in cur.fetchall()]
+    conn.close()
+    return render_template("tasks_list.html", tasks=rows)
+
+@app.route("/tasks/add", methods=["GET", "POST"])
+def tasks_add():
+    if request.method == "POST":
+        title = (request.form.get("title") or "").strip()
+        description = (request.form.get("description") or "").strip()
+        due_date = (request.form.get("due_date") or "").strip()
+        if not title or not description or not due_date:
+            return render_template("tasks_add.html", error="Tous les champs sont obligatoires.")
+        conn = get_tasks_db()
+        cur = conn.cursor()
+        cur.execute(
+            "INSERT INTO tasks (title, description, due_date) VALUES (?, ?, ?)",
+            (title, description, due_date)
+        )
+        conn.commit()
+        conn.close()
+        return redirect(url_for("tasks_list"))
+    return render_template("tasks_add.html", error=None)
+
+@app.route("/tasks/done/<int:task_id>", methods=["POST"])
+def tasks_done(task_id):
+    conn = get_tasks_db()
+    cur = conn.cursor()
+    cur.execute("UPDATE tasks SET is_done = 1 WHERE id = ?", (task_id,))
+    conn.commit()
+    conn.close()
+    return redirect(url_for("tasks_list"))
+
+@app.route("/tasks/delete/<int:task_id>", methods=["POST"])
+def tasks_delete(task_id):
+    conn = get_tasks_db()
+    cur = conn.cursor()
+    cur.execute("DELETE FROM tasks WHERE id = ?", (task_id,))
+    conn.commit()
+    conn.close()
+    return redirect(url_for("tasks_list"))
+
