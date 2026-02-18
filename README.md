@@ -366,7 +366,11 @@ ls > Vérifie l'existence de la nouvelle BDD
 On peut améliorer l'affichage sans toucher à la logique ni à la BDD : on ne fait que du front (template + un oeu de CSS)
 
 Dans le dépôt, le dossier statis/ a été créer avec un fichier static/tasks.css :
-
+Création du template de base templates/tasks_base.html > Ça évite de répéter le HTML partout.
+Mise à jour tes 3 templates existants (sans changer la logique)
+tasks_home.html
+tasks_add.html
+tasks_list.html
 
 
 
