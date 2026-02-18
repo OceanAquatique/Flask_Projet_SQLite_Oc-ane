@@ -1,46 +1,54 @@
-<!doctype html>
-<html lang="fr">
-<head>
-  <meta charset="utf-8">
-  <title>Liste des tâches</title>
-</head>
-<body>
-  <h1>Liste des tâches</h1>
+{% extends "tasks_base.html" %}
+{% block content %}
+  <div class="card">
+    <h2 style="margin:0 0 10px;">Tes tâches</h2>
 
-  <p>
-    <a href="/tasks">Accueil tâches</a> |
-    <a href="/tasks/add">Ajouter une tâche</a>
-  </p>
+    {% set total = tasks|length %}
+    {% set done = (tasks | selectattr("is_done", "equalto", 1) | list | length) %}
+    {% set todo = total - done %}
 
-  {% if tasks|length == 0 %}
-    <p>Aucune tâche pour le moment.</p>
-  {% else %}
-    <ul>
-      {% for t in tasks %}
-        <li>
-          <strong>
-            {% if t.is_done == 1 %}✅{% else %}🕒{% endif %}
-            {{ t.title }}
-          </strong>
-          — Échéance : {{ t.due_date }}
-          <br>
-          {{ t.description }}
-          <br><br>
+    <div class="kpis">
+      <div class="kpi"><strong>Total</strong> : {{ total }}</div>
+      <div class="kpi"><strong>En cours</strong> : {{ todo }}</div>
+      <div class="kpi"><strong>Terminées</strong> : {{ done }}</div>
+    </div>
 
-          {% if t.is_done == 0 %}
-            <form method="POST" action="/tasks/done/{{ t.id }}" style="display:inline;">
-              <button type="submit">Marquer terminée</button>
-            </form>
-          {% endif %}
+    <hr class="sep">
 
-          <form method="POST" action="/tasks/delete/{{ t.id }}" style="display:inline;">
-            <button type="submit">Supprimer</button>
-          </form>
-        </li>
-        <hr>
-      {% endfor %}
-    </ul>
-  {% endif %}
+    {% if total == 0 %}
+      <p class="small">Aucune tâche. Clique sur “+ Ajouter”.</p>
+    {% else %}
+      <div style="display:grid; gap:12px;">
+        {% for t in tasks %}
+          <div class="task">
+            <div class="taskTop">
+              <div>
+                <h3>{{ t.title }}</h3>
+                <div class="meta">
+                  {% if t.is_done == 1 %}
+                    <span class="badge ok">Terminée</span>
+                  {% else %}
+                    <span class="badge warn">En cours</span>
+                  {% endif %}
+                  <span class="badge">Échéance : {{ t.due_date }}</span>
+                </div>
+                <p>{{ t.description }}</p>
+              </div>
+            </div>
 
-</body>
-</html>
+            <div class="taskActions">
+              {% if t.is_done == 0 %}
+                <form method="POST" action="/tasks/done/{{ t.id }}">
+                  <button class="btn primary" type="submit">Marquer terminée</button>
+                </form>
+              {% endif %}
+              <form method="POST" action="/tasks/delete/{{ t.id }}">
+                <button class="btn danger" type="submit">Supprimer</button>
+              </form>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  </div>
+{% endblock %}
