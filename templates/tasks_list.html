@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <title>Liste des tâches</title>
+</head>
+<body>
+  <h1>Liste des tâches</h1>
+
+  <p>
+    <a href="/tasks">Accueil tâches</a> |
+    <a href="/tasks/add">Ajouter une tâche</a>
+  </p>
+
+  {% if tasks|length == 0 %}
+    <p>Aucune tâche pour le moment.</p>
+  {% else %}
+    <ul>
+      {% for t in tasks %}
+        <li>
+          <strong>
+            {% if t.is_done == 1 %}✅{% else %}🕒{% endif %}
+            {{ t.title }}
+          </strong>
+          — Échéance : {{ t.due_date }}
+          <br>
+          {{ t.description }}
+          <br><br>
+
+          {% if t.is_done == 0 %}
+            <form method="POST" action="/tasks/done/{{ t.id }}" style="display:inline;">
+              <button type="submit">Marquer terminée</button>
+            </form>
+          {% endif %}
+
+          <form method="POST" action="/tasks/delete/{{ t.id }}" style="display:inline;">
+            <button type="submit">Supprimer</button>
+          </form>
+        </li>
+        <hr>
+      {% endfor %}
+    </ul>
+  {% endif %}
+
+</body>
+</html>
