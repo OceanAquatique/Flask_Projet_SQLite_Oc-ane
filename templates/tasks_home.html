@@ -1,15 +1,19 @@
-<!doctype html>
-<html lang="fr">
-<head>
-  <meta charset="utf-8">
-  <title>Gestionnaire de tâches</title>
-</head>
-<body>
-  <h1>Mini Gestionnaire de Tâches</h1>
-  <ul>
-    <li><a href="/tasks/add">Ajouter une tâche</a></li>
-    <li><a href="/tasks/list">Voir la liste des tâches</a></li>
-    <li><a href="/">Retour accueil principal</a></li>
-  </ul>
-</body>
-</html>
+{% extends "tasks_base.html" %}
+{% block content %}
+  <div class="card">
+    <h2 style="margin:0 0 6px;">Bienvenue 👋</h2>
+    <p class="small">Ajoute, suis et clôture tes tâches. Simple et propre.</p>
+
+    <div class="kpis">
+      <div class="kpi"><strong>Conseil</strong> : utilise une échéance réaliste</div>
+      <div class="kpi"><strong>Pro</strong> : une tâche = un livrable</div>
+    </div>
+
+    <hr class="sep">
+
+    <div class="actions">
+      <a class="btn primary" href="{{ url_for('tasks_add') }}">Créer une tâche</a>
+      <a class="btn" href="{{ url_for('tasks_list') }}">Voir les tâches</a>
+    </div>
+  </div>
+{% endblock %}
