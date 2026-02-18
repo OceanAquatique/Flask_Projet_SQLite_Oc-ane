@@ -362,6 +362,10 @@ ls > Affiche le contenu
 python3 create_tasks_db.py > Ça génère tasks.db et crée la table tasks.
 ls > Vérifie l'existence de la nouvelle BDD
 
+5) PROPOSITION D'AMELIORATION DESIGN/UX
+On peut améliorer l'affichage sans toucher à la logique ni à la BDD : on ne fait que du front (template + un oeu de CSS)
+
+Dans le dépôt, le dossier statis/ a été créer avec un fichier static/tasks.css :
 
 
 
