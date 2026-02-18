@@ -304,4 +304,22 @@ Ce qui se passe : le navigateur demande un login / mot de passe, Flask vérifie 
 Sert à vérifier : l’authentification Basic Auth, la requête SQL, le format JSON.
 
 
+_________________________________________________________________________________________
 
+Dans un second temps, voici les objectifs Objectif du mini-projet “Gestion de tâches”
+
+Fonctionnalités demandées :
+Ajouter une tâche (titre, description)
+Liste des tâches
+Accueil + navigation
+Suppression
+Date d’échéance
+Marquer “terminée”
+
+On fera une table tasks avec :
+id
+title
+description
+due_date (date d’échéance)
+is_done (0/1)
+created_at
