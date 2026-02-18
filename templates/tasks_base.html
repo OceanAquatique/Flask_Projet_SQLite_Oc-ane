@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ title or "Tasks" }}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='tasks.css') }}">
+</head>
+<body>
+  <div class="container">
+    <div class="nav">
+      <div class="brand">
+        <div class="logo"></div>
+        <div>
+          <h1>TaskBoard</h1>
+          <p>Mini gestionnaire — Flask + SQLite</p>
+        </div>
+      </div>
+
+      <div class="actions">
+        <a class="btn ghost" href="{{ url_for('hello_world') }}">Accueil</a>
+        <a class="btn" href="{{ url_for('tasks_list') }}">Liste</a>
+        <a class="btn primary" href="{{ url_for('tasks_add') }}">+ Ajouter</a>
+      </div>
+    </div>
+
+    {% block content %}{% endblock %}
+  </div>
+</body>
+</html>
