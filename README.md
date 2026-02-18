@@ -323,3 +323,13 @@ description
 due_date (date d’échéance)
 is_done (0/1)
 created_at
+
+
+Les étapes
+
+
+Ensuite, se rendre sur Alwaysdata en SSH (https://ssh-oceanaquatique.alwaysdata.net/)
+Entrer les ID/MDP du compte oceanaquatique
+ATTENTION : en cas d'oubli de mot de passe, voici la procédure à suivre :
+1) Sur la console AlwaysData : SSH/SFTP > Paramètres > Mot de passe > Entrer le nouveau MDP
+2) Penser à bien modifie le secret sur GitHub dans
