@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <title>Ajouter une tâche</title>
+</head>
+<body>
+  <h1>Ajouter une tâche</h1>
+
+  {% if error %}
+    <p style="color:red;">{{ error }}</p>
+  {% endif %}
+
+  <form method="POST">
+    <div>
+      <label>Titre</label><br>
+      <input type="text" name="title" required>
+    </div>
+    <br>
+    <div>
+      <label>Description</label><br>
+      <textarea name="description" required></textarea>
+    </div>
+    <br>
+    <div>
+      <label>Date d’échéance</label><br>
+      <input type="date" name="due_date" required>
+    </div>
+    <br>
+    <button type="submit">Enregistrer</button>
+  </form>
+
+  <p><a href="/tasks">Retour</a></p>
+</body>
+</html>
