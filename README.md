@@ -325,11 +325,44 @@ is_done (0/1)
 created_at
 
 
-Les étapes
+Les étapes :
+
+1) CREER LES FICHIERS DANS LE REPOS GITHUB
+
+Ajouter les fichiers suivants à la racine du projet, avec leur contenu :
+schema_tasks.sql
+create_tasks_db.py
+
+2) AJOUTER LES FICHIERS HTML DANS LE templates/
+
+templates/tasks_home.html >
+templates/tasks_add.html >
+templates/tasks_list.html >
+
+3) MODIFIER __init__.py pour ajouter "tasks"
+
+Ajouter ce chemin après DB_PATH, afin qu'il pointe vers un nouveau fichier SQLite (séparé de database.db) : TASKS_DB_PATH = os.path.join(BASE_DIR, "tasks.db")
+Ajouter un helper supplémentaire : Identique à get_db() mais pour tasks.db.
+Ajouter les routes (à la fin)
 
 
-Ensuite, se rendre sur Alwaysdata en SSH (https://ssh-oceanaquatique.alwaysdata.net/)
+4) DEPLOYER GITHUB SUR ALWAYS DATA :
+
+Ensuite, se rendre sur Alwaysdata en SSH (https://ssh-oceanaquatique.alwaysdata.net/).
+En effet, il est important d'exécuter le script sur le serveur.
 Entrer les ID/MDP du compte oceanaquatique
+
 ATTENTION : en cas d'oubli de mot de passe, voici la procédure à suivre :
 1) Sur la console AlwaysData : SSH/SFTP > Paramètres > Mot de passe > Entrer le nouveau MDP
-2) Penser à bien modifie le secret sur GitHub dans
+2) Penser à bien modifie le secret sur GitHub dans settings > Secret & variables > Actions > Choisir le secret correspondant
+
+Une fois connecté sur la console :
+cd www/flask > Le sous-dossier
+ls > Affiche le contenu
+python3 create_tasks_db.py > Ça génère tasks.db et crée la table tasks.
+ls > Vérifie l'existence de la nouvelle BDD
+
+
+
+
+
