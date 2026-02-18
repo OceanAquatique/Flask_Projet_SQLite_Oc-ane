@@ -1,35 +1,31 @@
-<!doctype html>
-<html lang="fr">
-<head>
-  <meta charset="utf-8">
-  <title>Ajouter une tâche</title>
-</head>
-<body>
-  <h1>Ajouter une tâche</h1>
+{% extends "tasks_base.html" %}
+{% block content %}
+  <div class="grid">
+    <div class="card">
+      <h2 style="margin:0 0 6px;">Nouvelle tâche</h2>
+      <p class="small">Remplis les champs. L’échéance sert à prioriser.</p>
 
-  {% if error %}
-    <p style="color:red;">{{ error }}</p>
-  {% endif %}
+      {% if error %}
+        <p style="color:#fecaca; margin-top:10px;">{{ error }}</p>
+      {% endif %}
 
-  <form method="POST">
-    <div>
-      <label>Titre</label><br>
-      <input type="text" name="title" required>
-    </div>
-    <br>
-    <div>
-      <label>Description</label><br>
-      <textarea name="description" required></textarea>
-    </div>
-    <br>
-    <div>
-      <label>Date d’échéance</label><br>
-      <input type="date" name="due_date" required>
-    </div>
-    <br>
-    <button type="submit">Enregistrer</button>
-  </form>
+      <form class="form" method="POST">
+        <input class="input" type="text" name="title" placeholder="Titre (ex: Préparer le rapport SSI)" required>
+        <textarea name="description" placeholder="Description (ex: structure, sources, livrables…)" required></textarea>
+        <input class="input" type="date" name="due_date" required>
 
-  <p><a href="/tasks">Retour</a></p>
-</body>
-</html>
+        <div class="actions">
+          <button class="btn primary" type="submit">Enregistrer</button>
+          <a class="btn" href="{{ url_for('tasks_list') }}">Annuler</a>
+        </div>
+      </form>
+    </div>
+
+    <div class="card">
+      <h3 style="margin:0 0 6px;">Règles rapides</h3>
+      <p class="small">• Un titre actionnable (“Faire…”, “Rédiger…”, “Tester…”)<br>
+      • Une échéance claire<br>
+      • Une description utile (ce qui prouve que c’est fait)</p>
+    </div>
+  </div>
+{% endblock %}
